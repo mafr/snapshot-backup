@@ -20,18 +20,29 @@
 SOURCE_DIR=$HOME
 DEST_DIR=/media/disk/backup
 
-# If the directory isn't there then the drive probably isn't mounted.
-if [ ! -e "$DEST_DIR" ]; then
-	echo "$0: directory $DEST_DIR doesn't exist" 2>&1
+
+die() {
+	echo "$0: $1" 2>&1
 	exit 1
-fi
+}
 
-cd "$DEST_DIR"
+# If the directory isn't there then the drive probably isn't mounted.
+cd "$DEST_DIR" 2> /dev/null || die "cannot change to directory $DEST_DIR"
 
-test -e backup.3 && rm -rf backup.3
-test -e backup.2 && mv backup.2 backup.3
-test -e backup.1 && mv backup.1 backup.2
-test -e backup.0 && mv backup.0 backup.1
+
+# Delete oldest backup. We have to adjust permissions first,
+# just in case there are directories we may not traverse or delete.
+#
+test -e backup.4 && chmod -R u+rwx backup.4 && rm -rf backup.4
+test -e backup.4 && die "cannot delete the oldest backup backup.4"
+
+
+# Renumber backups. backup.N is renamed to backup.N+1.
+#
+for i in `seq 3 -1 0`; do
+        test -e backup.$i && mv backup.$i backup.$((i + 1))
+done
+
 
 rsync --archive --link-dest=../backup.1 \
 	--filter="merge $HOME/.backup.rc" \
