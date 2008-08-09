@@ -16,11 +16,13 @@
 #
 
 # Change these directories to whatever makes sense on your system!
+# KEEP_NUM is the number of backups (that is, snapshot directories) to keep.
 #
+KEEP_NUM=4
 SOURCE_DIR=$HOME
 DEST_DIR=/media/disk/backup
 
-
+# Print an error message and exit.
 die() {
 	echo "$0: $1" 2>&1
 	exit 1
@@ -30,22 +32,29 @@ die() {
 cd "$DEST_DIR" 2> /dev/null || die "cannot change to directory $DEST_DIR"
 
 
-# Delete oldest backup. We have to adjust permissions first,
-# just in case there are directories we may not traverse or delete.
+# Renumber all existing backups. backup.N is renamed to backup.N+1.
 #
-test -e backup.4 && chmod -R u+rwx backup.4 && rm -rf backup.4
-test -e backup.4 && die "cannot delete the oldest backup backup.4"
-
-
-# Renumber backups. backup.N is renamed to backup.N+1.
-#
-for i in `seq 3 -1 0`; do
-        test -e backup.$i && mv backup.$i backup.$((i + 1))
+for i in $(seq $KEEP_NUM -1 1); do
+	CURRENT=backup.$((i - 1))
+	NEXT=backup.$i
+	if [ -e $CURRENT ]; then
+		mv $CURRENT $NEXT || die "cannot move backup $CURRENT"
+	fi
 done
 
 
 rsync --archive --link-dest=../backup.1 \
 	--filter="merge $HOME/.backup.rc" \
-	"$SOURCE_DIR/" backup.0/
+	"$SOURCE_DIR/" backup.0/ || die "cannot create backup $SOURCE_DIR"
+
+
+# Delete the oldest backup. We have to adjust permissions first,
+# just in case there are directories we may not traverse or delete.
+#
+OLDEST=backup.$KEEP_NUM
+if [ -e $OLDEST ]; then
+	chmod -R u+rwx $OLDEST && rm -rf $OLDEST \
+		|| die "cannot delete the oldest backup $OLDEST"
+fi
 
 # EOF
