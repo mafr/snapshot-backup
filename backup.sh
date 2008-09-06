@@ -73,7 +73,7 @@ mv "$TMP_DIRNAME" backup.0 || die "cannot rename $TMP_DIRNAME"
 #
 OLDEST=backup.$KEEP_NUM
 if [ -e $OLDEST ]; then
-	find $OLDEST -type d | xargs chmod u+rwx && rm -rf $OLDEST \
+	find $OLDEST -type d -print0 | xargs -0 chmod u+rwx && rm -rf $OLDEST \
 		|| die "cannot delete the oldest backup $OLDEST"
 fi
 
