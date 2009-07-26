@@ -21,7 +21,7 @@
 #
 SOURCE_DIR=$HOME
 DEST_DIR=/media/disk/backups
-KEEP_NUM=4
+KEEP_NUM=6
 
 TMP_DIRNAME=backup.tmp
 
