@@ -20,7 +20,7 @@
 # KEEP_NUM is the number of backups (that is, snapshot directories) to keep.
 #
 SOURCE_DIR=$HOME
-DEST_DIR=/media/disk/backups
+DEST_DIR=/media/disk/backups/`hostname`
 KEEP_NUM=6
 
 TMP_DIRNAME=backup.tmp
