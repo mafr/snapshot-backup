@@ -17,11 +17,14 @@
 #
 
 # Change these directories to whatever makes sense on your system!
+# Alternatively, export BACKUP_SOURCE_DIR, BACKUP_DEST_DIR, BACKUP_KEEP_NUM
+# and then run this script.
+#
 # KEEP_NUM is the number of backups (that is, snapshot directories) to keep.
 #
-SOURCE_DIR=$HOME
-DEST_DIR=/media/disk/backups/`hostname`
-KEEP_NUM=6
+SOURCE_DIR=${BACKUP_SOURCE_DIR:-$HOME}
+DEST_DIR=${BACKUP_DEST_DIR:-/media/disk/backups/$(hostname)}
+KEEP_NUM=${BACKUP_KEEP_NUM-6}
 
 TMP_DIRNAME=backup.tmp
 
@@ -34,7 +37,8 @@ die() {
 
 # If the directory isn't there then the drive probably isn't mounted.
 #
-cd "$DEST_DIR" 2> /dev/null || die "cannot change to directory $DEST_DIR"
+cd "$DEST_DIR" 2> /dev/null \
+	|| die "cannot change to directory $DEST_DIR (does it exist?)"
 
 
 # For safety reasons we backup in a temporary backup directory.
@@ -43,9 +47,12 @@ cd "$DEST_DIR" 2> /dev/null || die "cannot change to directory $DEST_DIR"
 test -e "$TMP_DIRNAME" \
 	&& die "temporary backup directory exists: $DEST_DIR/$TMP_DIRNAME"
 
-# Create the backup.
+# Create the backup, but don't use --link-dest on first run to avoid warnings.
 #
-rsync --archive --link-dest=../backup.0 \
+if [ -e backup.0 ]; then
+	LINK_DEST="--link-dest=../backup.0"
+fi
+rsync --archive $LINK_DEST \
 	--filter="merge $HOME/.backup.rc" \
 	"$SOURCE_DIR/" "$TMP_DIRNAME/" || die "cannot create backup $SOURCE_DIR"
 
