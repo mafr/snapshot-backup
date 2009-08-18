@@ -16,15 +16,12 @@
 # GNU General Public License for more details.
 #
 
-# Change these directories to whatever makes sense on your system!
-# Alternatively, export BACKUP_SOURCE_DIR, BACKUP_DEST_DIR, BACKUP_KEEP_NUM
-# and then run this script.
-#
+# Default parameters. Override them via command line parameters.
 # KEEP_NUM is the number of backups (that is, snapshot directories) to keep.
 #
-SOURCE_DIR=${BACKUP_SOURCE_DIR:-$HOME}
-DEST_DIR=${BACKUP_DEST_DIR:-/media/disk/backups/$(hostname)}
-KEEP_NUM=${BACKUP_KEEP_NUM-6}
+SOURCE_DIR=$HOME
+DEST_DIR=/media/disk/backups/$(hostname)
+KEEP_NUM=6
 
 TMP_DIRNAME=backup.tmp
 
@@ -34,6 +31,28 @@ die() {
 	exit 1
 }
 
+# Print usage and exit.
+usage_die() {
+	echo "Usage: $(basename $0):" \
+		 "[-s source_dir] [-d dest_dir] [-k keep_num]" 2>&1
+	exit 1
+}
+
+# Parse command line arguments.
+#
+while getopts s:d:k: OPT; do
+	case "$OPT" in
+		s)	SOURCE_DIR=$OPTARG ;;
+		d)	DEST_DIR=$OPTARG ;;
+		k)	KEEP_NUM=$OPTARG ;;
+		\?)	usage_die ;;
+	esac
+done
+
+# Non-option parameters left? That's an error!
+shift $(expr $OPTIND - 1)
+test $# -eq 0 || usage_die
+
 
 # If the directory isn't there then the drive probably isn't mounted.
 #
@@ -41,8 +60,8 @@ cd "$DEST_DIR" 2> /dev/null \
 	|| die "cannot change to directory $DEST_DIR (does it exist?)"
 
 
-# For safety reasons we backup in a temporary backup directory.
-# If a previous temporary backup directory exists, fail.
+# For safety reasons we create the backup in a temporary directory first and
+# move it later. If a previous temporary backup directory exists, fail.
 #
 test -e "$TMP_DIRNAME" \
 	&& die "temporary backup directory exists: $DEST_DIR/$TMP_DIRNAME"
