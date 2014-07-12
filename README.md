@@ -15,3 +15,11 @@ Under the hood, snapshot-backup uses rsync for the linking and for its
 file inclusion/exclusion mechanism. This means it should be reasonably
 robust, but use it at your own risk and verify carefully that it works
 for you.
+
+
+References
+----------
+
+  * The [blog article](http://blog.mafr.de/2008/06/26/rsync-backups/) that
+    explains how it works in detail
+
