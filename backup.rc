@@ -1,0 +1,24 @@
+#
+# ~/.backup.rc - A standard filter file for rsync.
+#
+# Use it to add include/exclude patterns for the backup script. See sections
+# "FILTER RULES" and "INCLUDE/EXCLUDE PATTERN RULES" in rsync's man page for
+# more information. Patterns starting with / are anchored like with ^ in
+# regular expressions.
+#
+# Usage: rsync --filter="merge /path/to/this/file".
+#
+
+# This is a FUSE mount point; whatever there is, we don't want to backup it.
+- /.gvfs/
+
+# Don't backup caches. Mostly used by Gnome tools including Google Chrome.
+- /.cache/
+
+# Don't backup the browser cache (adjust to your own firefox profile!).
+- /.mozilla/firefox/kssfyp2m.default/Cache/
+
+# The Maven repository cache will be re-downloaded automatically.
+- /.m2/repository/
+
+# EOF
